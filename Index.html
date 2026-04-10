@@ -1,10 +1,196 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>TR's Site Site</title>
+  <meta charset="UTF-8">
+  <title>ASX Portfolio Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    header {
+      padding: 20px;
+      text-align: center;
+      background: #111827;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      padding: 12px;
+      width: 100%;
+      background: #3b82f6;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    canvas {
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 700px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <h1>Hello world</h1>
-  <p>This is my new website.</p>
+
+<header>
+  📊 ASX Portfolio Tracker (AFI • ARG • VAS)
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h3>Enter Your Holdings</h3>
+
+    <div class="row">
+      <div>
+        <label>AFI Shares</label>
+        <input id="afi" type="number" placeholder="e.g. 100">
+      </div>
+
+      <div>
+        <label>ARG Shares</label>
+        <input id="arg" type="number" placeholder="e.g. 100">
+      </div>
+
+      <div>
+        <label>VAS Shares</label>
+        <input id="vas" type="number" placeholder="e.g. 100">
+      </div>
+    </div>
+
+    <button onclick="generatePortfolio()">Generate Portfolio</button>
+  </div>
+
+  <div class="card">
+    <h3>Portfolio Value (5 Years - Monthly)</h3>
+    <canvas id="chart"></canvas>
+  </div>
+
+</div>
+
+<script>
+let chart;
+
+// Fake but realistic long-term growth paths (for demo purposes)
+function generateFakePrices(base, volatility, months) {
+  let arr = [];
+  let price = base;
+
+  for (let i = 0; i < months; i++) {
+    price *= (1 + (Math.random() - 0.45) * volatility);
+    arr.push(price);
+  }
+
+  return arr;
+}
+
+function generatePortfolio() {
+  const afiShares = parseFloat(document.getElementById("afi").value) || 0;
+  const argShares = parseFloat(document.getElementById("arg").value) || 0;
+  const vasShares = parseFloat(document.getElementById("vas").value) || 0;
+
+  const months = 60;
+
+  // Simulated ASX-like price paths
+  const afi = generateFakePrices(5.5, 0.03, months);
+  const arg = generateFakePrices(8.0, 0.025, months);
+  const vas = generateFakePrices(90, 0.02, months);
+
+  let labels = [];
+  let portfolio = [];
+
+  let baseDate = new Date();
+
+  for (let i = months - 1; i >= 0; i--) {
+    let d = new Date(baseDate);
+    d.setMonth(d.getMonth() - i);
+    labels.push(d.toISOString().slice(0, 7));
+
+    let total =
+      afiShares * afi[months - i - 1] +
+      argShares * arg[months - i - 1] +
+      vasShares * vas[months - i - 1];
+
+    portfolio.push(total.toFixed(2));
+  }
+
+  if (chart) chart.destroy();
+
+  const ctx = document.getElementById("chart").getContext("2d");
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Portfolio Value (AUD)",
+        data: portfolio,
+        borderColor: "#3b82f6",
+        borderWidth: 2,
+        fill: true,
+        tension: 0.2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: "#000" } }
+      },
+      scales: {
+        x: { ticks: { color: "#000" } },
+        y: { ticks: { color: "#000" } }
+      }
+    }
+  });
+}
+</script>
+
 </body>
 </html>
